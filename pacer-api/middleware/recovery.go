@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/yourname/pacer-api/utils"
+	"github.com/aashutosh148/Stridely/pacer-api/utils"
 )
 
 // RecoveryMiddleware recovers from panics and logs to Sentry

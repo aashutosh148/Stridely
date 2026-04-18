@@ -7,8 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/yourname/pacer-api/db"
-	"github.com/yourname/pacer-api/models"
+	"github.com/aashutosh148/Stridely/pacer-api/db"
+	"github.com/aashutosh148/Stridely/pacer-api/models"
 )
 
 type ActivitiesHandler struct {

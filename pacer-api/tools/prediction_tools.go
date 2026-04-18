@@ -3,7 +3,7 @@ package tools
 import (
 	"context"
 	"encoding/json"
-	"github.com/yourname/pacer-api/llm"
+	"github.com/aashutosh148/Stridely/pacer-api/llm"
 )
 
 type PredictFinishTimeTool struct { deps *Dependencies }

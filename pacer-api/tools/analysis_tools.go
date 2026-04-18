@@ -7,8 +7,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/yourname/pacer-api/llm"
-	"github.com/yourname/pacer-api/models"
+	"github.com/aashutosh148/Stridely/pacer-api/llm"
+	"github.com/aashutosh148/Stridely/pacer-api/models"
 )
 
 // ========================================================================

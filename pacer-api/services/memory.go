@@ -14,7 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/yourname/pacer-api/models"
+	"github.com/aashutosh148/Stridely/pacer-api/models"
 )
 
 // MemoryService handles memory operations (LLD Section 8)

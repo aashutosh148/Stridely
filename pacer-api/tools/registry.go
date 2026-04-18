@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourname/pacer-api/db"
-	"github.com/yourname/pacer-api/llm"
-	"github.com/yourname/pacer-api/models"
+	"github.com/aashutosh148/Stridely/pacer-api/db"
+	"github.com/aashutosh148/Stridely/pacer-api/llm"
+	"github.com/aashutosh148/Stridely/pacer-api/models"
 )
 
 // Tool interface that all tools must implement

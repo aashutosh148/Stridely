@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/yourname/pacer-api/db"
+	"github.com/aashutosh148/Stridely/pacer-api/db"
 )
 
 type ReadinessHandler struct {
