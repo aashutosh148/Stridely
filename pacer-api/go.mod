@@ -1,4 +1,4 @@
-module github.com/yourname/pacer-api
+module github.com/aashutosh148/Stridely/pacer-api
 
 go 1.25.0
 

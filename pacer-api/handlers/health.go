@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/yourname/pacer-api/db"
+	"github.com/aashutosh148/Stridely/pacer-api/db"
 )
 
 // HealthHandler handles health check requests

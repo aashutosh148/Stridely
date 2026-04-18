@@ -11,14 +11,14 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
-	"github.com/yourname/pacer-api/config"
-	"github.com/yourname/pacer-api/db"
-	"github.com/yourname/pacer-api/handlers"
-	"github.com/yourname/pacer-api/jobs"
-	"github.com/yourname/pacer-api/llm"
-	"github.com/yourname/pacer-api/middleware"
-	"github.com/yourname/pacer-api/services"
-	"github.com/yourname/pacer-api/tools"
+	"github.com/aashutosh148/Stridely/pacer-api/config"
+	"github.com/aashutosh148/Stridely/pacer-api/db"
+	"github.com/aashutosh148/Stridely/pacer-api/handlers"
+	"github.com/aashutosh148/Stridely/pacer-api/jobs"
+	"github.com/aashutosh148/Stridely/pacer-api/llm"
+	"github.com/aashutosh148/Stridely/pacer-api/middleware"
+	"github.com/aashutosh148/Stridely/pacer-api/services"
+	"github.com/aashutosh148/Stridely/pacer-api/tools"
 )
 
 func main() {

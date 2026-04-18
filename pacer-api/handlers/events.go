@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/yourname/pacer-api/services"
+	"github.com/aashutosh148/Stridely/pacer-api/services"
 )
 
 type EventsHandler struct {

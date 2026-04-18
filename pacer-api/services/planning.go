@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourname/pacer-api/db"
-	"github.com/yourname/pacer-api/models"
+	"github.com/aashutosh148/Stridely/pacer-api/db"
+	"github.com/aashutosh148/Stridely/pacer-api/models"
 )
 
 // PlanningService handles training plan generation and adjustment

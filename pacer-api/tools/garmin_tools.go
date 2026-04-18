@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/yourname/pacer-api/llm"
+	"github.com/aashutosh148/Stridely/pacer-api/llm"
 )
 
 type GetDailySummaryTool struct{ deps *Dependencies }

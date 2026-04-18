@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/yourname/pacer-api/utils"
+	"github.com/aashutosh148/Stridely/pacer-api/utils"
 )
 
 // AuthMiddleware verifies JWT tokens and injects userID into context
