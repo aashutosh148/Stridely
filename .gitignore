@@ -1,0 +1,39 @@
+# Environment files (except examples)
+.env
+.env.*
+.env.local
+.env*.local
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+/tmp/
+
+# Docker
+docker-compose.override.yml
+
+# Common build artifacts
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+**/bin/
+
+# Documentation build artifacts
+docs/_build/
+docs/.doctrees/

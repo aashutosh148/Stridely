@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: pacer-postgres
+    environment:
+      POSTGRES_DB: pacer
+      POSTGRES_USER: pacer
+      POSTGRES_PASSWORD: pacer_dev_password
+    ports:
+      - "54320:5432"  # Use different port to avoid conflicts
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pacer -d pacer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pacer-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: pacer-redis
+    ports:
+      - "63790:6379"  # Use different port to avoid conflicts
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - pacer-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pacer-api
+    environment:
+      PORT: 3001
+      ENV: development
+      DATABASE_URL: postgresql://pacer:pacer_dev_password@postgres:5432/pacer?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-change-in-production-min-32-chars
+      ENCRYPTION_KEY_HEX: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pacer-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  pacer-network:
+    driver: bridge

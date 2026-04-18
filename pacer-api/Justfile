@@ -1,0 +1,52 @@
+# pacer-api commands
+
+default:
+	@just --list
+
+up:
+	docker compose up -d
+
+down:
+	docker compose down
+
+down-volumes:
+	docker compose down -v
+
+deps-up:
+	docker compose up -d postgres redis
+
+deps-down:
+	docker compose stop postgres redis
+
+logs:
+	docker compose logs -f
+
+logs-api:
+	docker compose logs -f api
+
+logs-db:
+	docker compose logs -f postgres
+
+logs-redis:
+	docker compose logs -f redis
+
+rebuild:
+	docker compose up -d --build api
+
+dev:
+	go run main.go
+
+test:
+	go test ./...
+
+fmt:
+	go fmt ./...
+
+build:
+	go build -o bin/pacer-api main.go
+
+health:
+	curl -s http://localhost:3001/health
+
+db:
+	docker exec -it pacer-postgres psql -U pacer -d pacer
