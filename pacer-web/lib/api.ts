@@ -4,14 +4,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/a
 
 export interface User {
   id: string;
-  email: string | null;
-  name: string | null;
-  tier: 'FREE' | 'PRO' | 'ELITE';
-  isStravaConnected: boolean;
-  isGarminConnected: boolean;
-  targetRaceId: string | null;
-  createdAt: string;
-  updatedAt: string;
+  email: string;
+  runner_tier: string;
+  subscription_tier: string;
+  goal_time_s?: number;
+  target_race_date?: string;
+  strava_athlete_id?: string;
+  garmin_user_id?: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture_url?: string;
+  bio?: string;
+  city?: string;
+  state?: string;
+  created_at: string;
 }
 
 export interface AuthMeResponse {

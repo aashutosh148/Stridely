@@ -87,9 +87,9 @@ func (s *PlanningService) GenerateBlock(ctx context.Context, userID uuid.UUID, p
 		Phase:      models.PhaseBase,
 		BlockStart: time.Now(),
 		BlockEnd:   params.RaceDate,
-		TargetRace: sql.NullTime{Time: params.RaceDate, Valid: true},
-		GoalTimeS:  sql.NullInt32{Int32: int32(params.GoalTimeS), Valid: true},
-		PeakCTL:    sql.NullFloat64{Float64: s.calculatePeakCTL(params), Valid: true},
+		TargetRace: models.NullTime{NullTime: sql.NullTime{Time: params.RaceDate, Valid: true}},
+		GoalTimeS:  models.NullInt32{NullInt32: sql.NullInt32{Int32: int32(params.GoalTimeS), Valid: true}},
+		PeakCTL:    models.NullFloat64{NullFloat64: sql.NullFloat64{Float64: s.calculatePeakCTL(params), Valid: true}},
 		IsActive:   true,
 		CreatedAt:  time.Now(),
 	}

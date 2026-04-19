@@ -152,37 +152,37 @@ export default function ActivitiesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-gray-100">
             Activities
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-400 mt-1">
             {total} total {total === 1 ? 'activity' : 'activities'}
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div className="bg-[#161b26] rounded-lg shadow-lg p-6 border border-gray-800">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-gray-400" />
-          <h2 className="font-semibold text-gray-900">Filters</h2>
+          <h2 className="font-semibold text-gray-100">Filters</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type="text"
               placeholder="Search activities..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-[#1e2530] border border-gray-800 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -193,10 +193,10 @@ export default function ActivitiesPage() {
           <select
             value={workoutTypeFilter}
             onChange={(e) => { setWorkoutTypeFilter(e.target.value); setPage(1); }}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all capitalize"
+            className="px-4 py-2.5 bg-[#1e2530] border border-gray-800 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all capitalize"
           >
             {workoutTypes.map(type => (
-              <option key={type} value={type} className="capitalize">
+              <option key={type} value={type} className="capitalize bg-[#1e2530]">
                 {type === 'all' ? 'All Types' : type.replace('_', ' ')}
               </option>
             ))}
@@ -206,57 +206,57 @@ export default function ActivitiesPage() {
           <select
             value={dateFilter}
             onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            className="px-4 py-2.5 bg-[#1e2530] border border-gray-800 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
           >
-            <option value="all">All Time</option>
-            <option value="week">Last 7 Days</option>
-            <option value="month">Last 30 Days</option>
-            <option value="3months">Last 3 Months</option>
+            <option value="all" className="bg-[#1e2530]">All Time</option>
+            <option value="week" className="bg-[#1e2530]">Last 7 Days</option>
+            <option value="month" className="bg-[#1e2530]">Last 30 Days</option>
+            <option value="3months" className="bg-[#1e2530]">Last 3 Months</option>
           </select>
         </div>
       </div>
 
       {/* Activities List */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div className="bg-[#161b26] rounded-lg shadow-lg border border-gray-800 overflow-hidden">
         {loading ? (
           <div className="p-8 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-24 bg-gradient-to-r from-gray-100 to-gray-50 animate-pulse rounded-xl" />
+              <div key={i} className="h-24 bg-[#1e2530] animate-pulse rounded-lg" />
             ))}
           </div>
         ) : filteredActivities.length === 0 ? (
           <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 mb-4">
-              <Footprints className="w-8 h-8 text-gray-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1e2530] mb-4">
+              <Footprints className="w-8 h-8 text-gray-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No activities found</h3>
-            <p className="text-gray-500">Try adjusting your filters or connect Strava to sync activities</p>
+            <h3 className="text-lg font-semibold text-gray-100 mb-2">No activities found</h3>
+            <p className="text-gray-400">Try adjusting your filters or connect Strava to sync activities</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-800">
             {filteredActivities.map((activity, idx) => (
               <div
                 key={activity.id}
                 onClick={() => handleActivityClick(activity.id)}
-                className="p-6 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer group"
+                className="p-6 hover:bg-[#1e2530] transition-all duration-200 cursor-pointer group"
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-3">
-                      <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                      <div className="p-3 bg-blue-600 rounded-lg group-hover:bg-blue-500 transition-colors">
                         <Footprints className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-lg text-gray-900 capitalize flex items-center gap-2">
+                        <h3 className="font-semibold text-lg text-gray-100 capitalize flex items-center gap-2">
                           {activity.workout_type.replace('_', ' ')}
                           {activity.tss >= 100 && (
-                            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
+                            <span className="px-2 py-0.5 bg-red-900/50 text-red-400 text-xs font-semibold rounded border border-red-800">
                               High Load
                             </span>
                           )}
                         </h3>
-                        <p className="text-sm text-gray-500 flex items-center gap-2">
+                        <p className="text-sm text-gray-400 flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5" />
                           {new Date(activity.activity_date).toLocaleDateString('en-US', {
                             weekday: 'long',
@@ -270,34 +270,34 @@ export default function ActivitiesPage() {
 
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-4 pl-16">
                       <div className="flex items-center gap-2">
-                        <Footprints className="w-4 h-4 text-gray-400" />
+                        <Footprints className="w-4 h-4 text-gray-500" />
                         <div>
-                          <div className="text-sm font-semibold text-gray-900">{formatDistance(activity.distance_m)} km</div>
+                          <div className="text-sm font-semibold text-gray-100">{formatDistance(activity.distance_m)} km</div>
                           <div className="text-xs text-gray-500">Distance</div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
+                        <Clock className="w-4 h-4 text-gray-500" />
                         <div>
-                          <div className="text-sm font-semibold text-gray-900 font-mono">{formatDuration(activity.duration_s)}</div>
+                          <div className="text-sm font-semibold text-gray-100 font-mono">{formatDuration(activity.duration_s)}</div>
                           <div className="text-xs text-gray-500">Duration</div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-gray-400" />
+                        <TrendingUp className="w-4 h-4 text-gray-500" />
                         <div>
-                          <div className="text-sm font-semibold text-gray-900 font-mono">{formatPace(activity.avg_pace_s)}</div>
+                          <div className="text-sm font-semibold text-gray-100 font-mono">{formatPace(activity.avg_pace_s)}</div>
                           <div className="text-xs text-gray-500">Avg Pace</div>
                         </div>
                       </div>
 
                       {activity.avg_hr > 0 && (
                         <div className="flex items-center gap-2">
-                          <Heart className="w-4 h-4 text-rose-400" />
+                          <Heart className="w-4 h-4 text-red-500" />
                           <div>
-                            <div className="text-sm font-semibold text-gray-900">{activity.avg_hr} bpm</div>
+                            <div className="text-sm font-semibold text-gray-100">{activity.avg_hr} bpm</div>
                             <div className="text-xs text-gray-500">Avg HR</div>
                           </div>
                         </div>
@@ -305,9 +305,9 @@ export default function ActivitiesPage() {
 
                       {activity.elevation_gain_m > 0 && (
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-emerald-400" />
+                          <TrendingUp className="w-4 h-4 text-green-500" />
                           <div>
-                            <div className="text-sm font-semibold text-gray-900">{Math.round(activity.elevation_gain_m)} m</div>
+                            <div className="text-sm font-semibold text-gray-100">{Math.round(activity.elevation_gain_m)} m</div>
                             <div className="text-xs text-gray-500">Elevation</div>
                           </div>
                         </div>
@@ -316,10 +316,10 @@ export default function ActivitiesPage() {
                       {activity.tss > 0 && (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-gray-900">{activity.tss.toFixed(0)}</div>
+                            <div className="text-sm font-semibold text-gray-100">{activity.tss.toFixed(0)}</div>
                             <div className="text-xs text-gray-500">TSS</div>
                           </div>
                         </div>
@@ -335,15 +335,15 @@ export default function ActivitiesPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white rounded-2xl shadow-lg p-4 border border-gray-100">
-          <div className="text-sm text-gray-600">
+        <div className="flex items-center justify-between bg-[#161b26] rounded-lg shadow-lg p-4 border border-gray-800">
+          <div className="text-sm text-gray-400">
             Page {page} of {totalPages}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-2 rounded-lg border border-gray-800 hover:bg-[#1e2530] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-gray-400"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -367,8 +367,8 @@ export default function ActivitiesPage() {
                     onClick={() => setPage(pageNum)}
                     className={`w-10 h-10 rounded-lg font-medium transition-all ${
                       page === pageNum
-                        ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md'
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'bg-blue-600 text-white'
+                        : 'hover:bg-[#1e2530] text-gray-400'
                     }`}
                   >
                     {pageNum}
@@ -380,7 +380,7 @@ export default function ActivitiesPage() {
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-2 rounded-lg border border-gray-800 hover:bg-[#1e2530] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-gray-400"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
