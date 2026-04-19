@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,23 +42,23 @@ type Activity struct {
 	DistanceM             int               `json:"distance_m"`
 	DurationS             int               `json:"duration_s"`
 	ElevationGainM        float64           `json:"elevation_gain_m"`
-	AvgPaceS              sql.NullFloat64   `json:"avg_pace_s,omitempty"`
-	AvgHR                 sql.NullInt32     `json:"avg_hr,omitempty"`
-	MaxHR                 sql.NullInt32     `json:"max_hr,omitempty"`
-	TSS                   sql.NullFloat64   `json:"tss,omitempty"`
-	IntensityFactor       sql.NullFloat64   `json:"intensity_factor,omitempty"`
+	AvgPaceS              *float64          `json:"avg_pace_s,omitempty"`
+	AvgHR                 *int              `json:"avg_hr,omitempty"`
+	MaxHR                 *int              `json:"max_hr,omitempty"`
+	TSS                   *float64          `json:"tss,omitempty"`
+	IntensityFactor       *float64          `json:"intensity_factor,omitempty"`
 	ZoneDistribution      *ZoneDistribution `json:"zone_distribution,omitempty"`
-	CardiacDecouplingPct  sql.NullFloat64   `json:"cardiac_decoupling_pct,omitempty"`
-	GarminCadenceSPM      sql.NullInt32     `json:"garmin_cadence_spm,omitempty"`
-	GarminGCTMs           sql.NullInt32     `json:"garmin_gct_ms,omitempty"`
-	GarminVertOscCm       sql.NullFloat64   `json:"garmin_vert_osc_cm,omitempty"`
-	GarminLRBalancePct    sql.NullFloat64   `json:"garmin_lr_balance_pct,omitempty"`
-	GarminTrainingLoad    sql.NullFloat64   `json:"garmin_training_load,omitempty"`
-	RPEReported           sql.NullInt32     `json:"rpe_reported,omitempty"`
-	MatchedWorkoutID      uuid.NullUUID     `json:"matched_workout_id,omitempty"`
-	AdherenceScore        sql.NullFloat64   `json:"adherence_score,omitempty"`
+	CardiacDecouplingPct  *float64          `json:"cardiac_decoupling_pct,omitempty"`
+	GarminCadenceSPM      *int              `json:"garmin_cadence_spm,omitempty"`
+	GarminGCTMs           *int              `json:"garmin_gct_ms,omitempty"`
+	GarminVertOscCm       *float64          `json:"garmin_vert_osc_cm,omitempty"`
+	GarminLRBalancePct    *float64          `json:"garmin_lr_balance_pct,omitempty"`
+	GarminTrainingLoad    *float64          `json:"garmin_training_load,omitempty"`
+	RPEReported           *int              `json:"rpe_reported,omitempty"`
+	MatchedWorkoutID      *uuid.UUID        `json:"matched_workout_id,omitempty"`
+	AdherenceScore        *float64          `json:"adherence_score,omitempty"`
 	SplitsKm              []Split           `json:"splits_km,omitempty"`
-	StreamsS3Key          sql.NullString    `json:"streams_s3_key,omitempty"`
-	GearID                sql.NullString    `json:"gear_id,omitempty"`
+	StreamsS3Key          *string           `json:"streams_s3_key,omitempty"`
+	GearID                *string           `json:"gear_id,omitempty"`
 	CreatedAt             time.Time         `json:"created_at"`
 }

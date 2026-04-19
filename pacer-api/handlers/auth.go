@@ -111,11 +111,12 @@ func (h *AuthHandler) StravaCallback(c *fiber.Ctx) error {
 	if isNewUser {
 		go func() {
 			ctx := context.Background()
-			slog.Info("starting background strava history sync", "user_id", user.ID)
-			if err := h.analysis.SyncStravaHistory(ctx, user.ID, h.strava, 180); err != nil {
+			slog.Info("starting background strava history sync (all activities)", "user_id", user.ID)
+			// Sync last 10 years worth of activities (effectively all activities)
+			if err := h.analysis.SyncStravaHistory(ctx, user.ID, h.strava, 3650); err != nil {
 				slog.Error("strava history sync failed", "user_id", user.ID, "error", err)
 			} else {
-				slog.Info("strava history sync completed", "user_id", user.ID)
+				slog.Info("✅ strava history sync completed (all activities synced)", "user_id", user.ID)
 			}
 		}()
 		slog.Info("initiated strava history sync", "user_id", user.ID)

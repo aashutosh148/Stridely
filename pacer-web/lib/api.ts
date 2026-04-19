@@ -16,6 +16,8 @@ export interface User {
 
 export interface AuthMeResponse {
   user: User;
+  strava_connected: boolean;
+  garmin_connected: boolean;
 }
 
 export class ApiError extends Error {

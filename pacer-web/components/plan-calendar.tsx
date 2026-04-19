@@ -49,12 +49,16 @@ function workoutTypeClass(type: string) {
 export function PlanCalendar({ workouts, weekStart, isLoading }: { workouts: PlanWorkout[]; weekStart?: string; isLoading?: boolean }) {
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="h-5 w-24 animate-pulse rounded bg-gray-200" />
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-          {Array.from({ length: 7 }).map((_, idx) => (
-            <div key={idx} className="h-24 animate-pulse rounded-lg bg-gray-100" />
-          ))}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-5">
+          <div className="h-6 w-32 animate-pulse rounded bg-gray-300" />
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
+            {Array.from({ length: 7 }).map((_, idx) => (
+              <div key={idx} className="h-32 animate-pulse rounded-xl bg-gray-100" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -93,45 +97,63 @@ export function PlanCalendar({ workouts, weekStart, isLoading }: { workouts: Pla
 
   return (
     <>
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-900">This Week</h2>
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-          {days.map((day, idx) => {
-            const workout = workoutByDay[idx];
-            return (
-              <button
-                key={day.toISOString()}
-                type="button"
-                onClick={() => workout && setSelected(workout)}
-                className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-left transition hover:border-gray-300 hover:bg-gray-100 disabled:cursor-default"
-                disabled={!workout}
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{WEEK_DAYS[idx]}</p>
-                <p className="mt-1 text-sm font-medium text-gray-900">{day.getDate()}</p>
-                {workout ? (
-                  <>
-                    <span
-                      className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${workoutTypeClass(
-                        workout.workout_type,
-                      )}`}
-                    >
-                      {workout.workout_type}
-                    </span>
-                    <p className="mt-2 text-xs text-gray-600">{workout.distance_km ? `${workout.distance_km.toFixed(1)} km` : '-'}</p>
-                    <span
-                      className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusClass(
-                        workout.status,
-                      )}`}
-                    >
-                      {workout.status}
-                    </span>
-                  </>
-                ) : (
-                  <p className="mt-3 text-xs text-gray-400">Rest</p>
-                )}
-              </button>
-            );
-          })}
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-5">
+          <h2 className="text-lg font-bold text-gray-900">This Week's Training</h2>
+          <p className="text-sm text-gray-600">Click a workout to view details and mark completion</p>
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
+            {days.map((day, idx) => {
+              const workout = workoutByDay[idx];
+              const isToday = new Date().toDateString() === day.toDateString();
+              return (
+                <button
+                  key={day.toISOString()}
+                  type="button"
+                  onClick={() => workout && setSelected(workout)}
+                  className={`group rounded-xl border-2 p-4 text-left transition-all ${
+                    isToday
+                      ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-md'
+                      : 'border-gray-200 bg-gray-50 hover:border-indigo-300 hover:shadow-md'
+                  } ${workout ? 'cursor-pointer' : 'cursor-default'}`}
+                  disabled={!workout}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">{WEEK_DAYS[idx]}</p>
+                    {isToday && <span className="h-2 w-2 rounded-full bg-indigo-500"></span>}
+                  </div>
+                  <p className="mt-1 text-lg font-bold text-gray-900">{day.getDate()}</p>
+                  {workout ? (
+                    <div className="mt-3 space-y-2">
+                      <span
+                        className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-bold shadow-sm ${workoutTypeClass(
+                          workout.workout_type,
+                        )}`}
+                      >
+                        {workout.workout_type}
+                      </span>
+                      <p className="text-sm font-semibold text-gray-700">
+                        {workout.distance_km ? `${workout.distance_km.toFixed(1)} km` : '-'}
+                      </p>
+                      <span
+                        className={`inline-flex rounded-lg px-2 py-0.5 text-[11px] font-bold ${statusClass(
+                          workout.status,
+                        )}`}
+                      >
+                        {workout.status}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mt-4 flex items-center gap-1">
+                      <div className="h-1 w-1 rounded-full bg-gray-300"></div>
+                      <p className="text-xs font-medium text-gray-400">Rest Day</p>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -140,58 +162,90 @@ export function PlanCalendar({ workouts, weekStart, isLoading }: { workouts: Pla
           <button
             type="button"
             aria-label="Close drawer"
-            className="absolute inset-0 bg-black/30"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setSelected(null)}
           />
-          <aside className="absolute right-0 top-0 h-full w-full max-w-md border-l border-gray-200 bg-white p-5 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Workout details</h3>
-              <button type="button" onClick={() => setSelected(null)} className="rounded p-1 text-gray-500 hover:bg-gray-100">
-                <X className="h-5 w-5" />
-              </button>
+          <aside className="absolute right-0 top-0 h-full w-full max-w-md overflow-hidden border-l border-gray-200 bg-white shadow-2xl">
+            <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Workout Details</h3>
+                  <p className="mt-1 text-sm text-white/80">Review and mark completion</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  className="rounded-lg bg-white/20 p-2 text-white backdrop-blur-sm transition hover:bg-white/30"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="mt-4 space-y-3 text-sm">
-              <p>
-                <span className="font-semibold text-gray-900">Type:</span> <span className="text-gray-700">{selected.workout_type}</span>
-              </p>
-              <p>
-                <span className="font-semibold text-gray-900">Distance:</span>{' '}
-                <span className="text-gray-700">{selected.distance_km ? `${selected.distance_km.toFixed(1)} km` : 'N/A'}</span>
-              </p>
-              {selected.description ? (
-                <p>
-                  <span className="font-semibold text-gray-900">Description:</span>{' '}
-                  <span className="text-gray-700">{selected.description}</span>
-                </p>
-              ) : null}
-              {selected.purpose ? (
-                <p>
-                  <span className="font-semibold text-gray-900">Purpose:</span> <span className="text-gray-700">{selected.purpose}</span>
-                </p>
-              ) : null}
-              <p>
-                <span className="font-semibold text-gray-900">Status:</span> <span className="text-gray-700">{selected.status}</span>
-              </p>
-            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Workout Type</p>
+                  <span
+                    className={`mt-2 inline-flex rounded-lg px-3 py-1.5 text-sm font-bold shadow-sm ${workoutTypeClass(
+                      selected.workout_type,
+                    )}`}
+                  >
+                    {selected.workout_type}
+                  </span>
+                </div>
 
-            <div className="mt-6 flex gap-3">
-              <button
-                type="button"
-                onClick={() => setStatus(selected, 'completed')}
-                disabled={updateWorkout.isPending}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
-              >
-                Mark completed
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatus(selected, 'skipped')}
-                disabled={updateWorkout.isPending}
-                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
-              >
-                Mark skipped
-              </button>
+                <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Distance</p>
+                  <p className="mt-1 text-2xl font-bold text-gray-900">
+                    {selected.distance_km ? `${selected.distance_km.toFixed(1)} km` : 'N/A'}
+                  </p>
+                </div>
+
+                {selected.description ? (
+                  <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">Description</p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-700">{selected.description}</p>
+                  </div>
+                ) : null}
+
+                {selected.purpose ? (
+                  <div className="rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-purple-600">Purpose</p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-700">{selected.purpose}</p>
+                  </div>
+                ) : null}
+
+                <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Current Status</p>
+                  <span
+                    className={`mt-2 inline-flex rounded-lg px-3 py-1.5 text-sm font-bold ${statusClass(
+                      selected.status,
+                    )}`}
+                  >
+                    {selected.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStatus(selected, 'completed')}
+                  disabled={updateWorkout.isPending}
+                  className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-3 text-sm font-bold text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
+                >
+                  Mark Completed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatus(selected, 'skipped')}
+                  disabled={updateWorkout.isPending}
+                  className="flex-1 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 px-4 py-3 text-sm font-bold text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
+                >
+                  Mark Skipped
+                </button>
+              </div>
             </div>
           </aside>
         </div>

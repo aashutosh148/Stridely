@@ -191,6 +191,8 @@ func main() {
 	protected.Get("/activities/recent", activitiesHandler.Recent)
 	protected.Get("/activities/:id", activitiesHandler.Get)
 	protected.Post("/activities/sync", activitiesHandler.Sync)
+	protected.Post("/activities/recalculate-zones", activitiesHandler.RecalculateZones)
+	protected.Post("/activities/trigger-zone-recalc", activitiesHandler.TriggerZoneRecalc)
 	protected.Get("/events/stream", eventsHandler.Stream)
 
 	// Fitness metrics routes
