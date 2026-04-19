@@ -22,7 +22,15 @@ type StravaClient struct {
 }
 
 type StravaAthlete struct {
-	ID int64 `json:"id"`
+	ID            int64  `json:"id"`
+	Username      string `json:"username"`
+	Firstname     string `json:"firstname"`
+	Lastname      string `json:"lastname"`
+	Bio           string `json:"bio"`
+	City          string `json:"city"`
+	State         string `json:"state"`
+	Profile       string `json:"profile"`
+	ProfileMedium string `json:"profile_medium"`
 }
 
 type StravaTokenResponse struct {

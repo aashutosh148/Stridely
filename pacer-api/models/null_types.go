@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"encoding/json"
+	"time"
 )
 
 // NullFloat64 is a wrapper around sql.NullFloat64 that marshals properly to JSON
@@ -79,6 +80,32 @@ func (ns *NullString) UnmarshalJSON(data []byte) error {
 		ns.String = *s
 	} else {
 		ns.Valid = false
+	}
+	return nil
+}
+
+// NullTime is a wrapper around sql.NullTime that marshals properly to JSON
+type NullTime struct {
+	sql.NullTime
+}
+
+func (nt NullTime) MarshalJSON() ([]byte, error) {
+	if !nt.Valid {
+		return []byte("null"), nil
+	}
+	return json.Marshal(nt.Time)
+}
+
+func (nt *NullTime) UnmarshalJSON(data []byte) error {
+	var t *time.Time
+	if err := json.Unmarshal(data, &t); err != nil {
+		return err
+	}
+	if t != nil {
+		nt.Valid = true
+		nt.Time = *t
+	} else {
+		nt.Valid = false
 	}
 	return nil
 }
