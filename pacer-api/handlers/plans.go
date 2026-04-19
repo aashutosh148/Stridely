@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
+	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/aashutosh148/Stridely/pacer-api/db"
 	"github.com/aashutosh148/Stridely/pacer-api/models"
 	"github.com/aashutosh148/Stridely/pacer-api/services"
@@ -44,8 +46,12 @@ func (h *PlansHandler) GetActive(c *fiber.Ctx) error {
 		&block.ID, &block.UserID, &block.Phase, &block.BlockStart, &block.BlockEnd,
 		&block.TargetRace, &block.GoalTimeS, &block.PeakCTL, &block.IsActive, &block.CreatedAt,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return c.Status(404).JSON(fiber.Map{"error": "no active training block found"})
+	}
+	if err != nil {
+		slog.Error("failed to query active training block", "error", err, "user_id", userID)
+		return c.Status(500).JSON(fiber.Map{"error": "database error"})
 	}
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "database error"})
@@ -82,6 +88,7 @@ func (h *PlansHandler) GetWeek(c *fiber.Ctx) error {
 
 	rows, err := h.db.Pool.Query(c.Context(), query, uid, startOfWeek, endOfWeek)
 	if err != nil {
+		slog.Error("failed to query week workouts", "error", err, "user_id", userID, "start", startOfWeek, "end", endOfWeek)
 		return c.Status(500).JSON(fiber.Map{"error": "database error"})
 	}
 	defer rows.Close()

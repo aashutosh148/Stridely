@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -9,14 +11,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/aashutosh148/Stridely/pacer-api/db"
 	"github.com/aashutosh148/Stridely/pacer-api/models"
+	"github.com/aashutosh148/Stridely/pacer-api/services"
 )
 
 type ActivitiesHandler struct {
-	db *db.Postgres
+	db       *db.Postgres
+	strava   *services.StravaClient
+	analysis *services.AnalysisService
 }
 
-func NewActivitiesHandler(dbConn *db.Postgres) *ActivitiesHandler {
-	return &ActivitiesHandler{db: dbConn}
+func NewActivitiesHandler(dbConn *db.Postgres, strava *services.StravaClient, analysis *services.AnalysisService) *ActivitiesHandler {
+	return &ActivitiesHandler{
+		db:       dbConn,
+		strava:   strava,
+		analysis: analysis,
+	}
 }
 
 // List returns paginated list of activities
@@ -181,6 +190,8 @@ func (h *ActivitiesHandler) Get(c *fiber.Ctx) error {
 // Recent returns last 10 activities (for dashboard widget)
 func (h *ActivitiesHandler) Recent(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
+	
+	slog.Info("📊 fetching recent activities", "user_id", userID)
 
 	rows, err := h.db.Pool.Query(c.Context(), `
 		SELECT id, strava_id, activity_date, workout_type,
@@ -192,6 +203,7 @@ func (h *ActivitiesHandler) Recent(c *fiber.Ctx) error {
 	`, userID)
 
 	if err != nil {
+		slog.Error("failed to query recent activities", "error", err, "user_id", userID)
 		return c.Status(500).JSON(fiber.Map{"error": "database query failed"})
 	}
 	defer rows.Close()
@@ -216,6 +228,7 @@ func (h *ActivitiesHandler) Recent(c *fiber.Ctx) error {
 			&activity.AvgPaceS, &activity.TSS,
 		)
 		if err != nil {
+			slog.Error("failed to scan activity", "error", err)
 			continue
 		}
 		activities = append(activities, activity)
@@ -225,5 +238,42 @@ func (h *ActivitiesHandler) Recent(c *fiber.Ctx) error {
 		activities = []RecentActivity{} // Return empty array instead of null
 	}
 
+	slog.Info("✅ returning recent activities", "user_id", userID, "count", len(activities))
+
 	return c.JSON(fiber.Map{"activities": activities})
+}
+
+// Sync triggers a manual sync of activities from Strava
+func (h *ActivitiesHandler) Sync(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	
+	// Parse optional days parameter (default: last 7 days)
+	days := c.QueryInt("days", 7)
+	if days < 1 || days > 365 {
+		return c.Status(400).JSON(fiber.Map{"error": "days must be between 1 and 365"})
+	}
+	
+	slog.Info("🔄 manual sync triggered", "user_id", userID, "days", days)
+	
+	// Parse user ID
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid user ID"})
+	}
+	
+	// Start sync in background
+	go func() {
+		ctx := context.Background()
+		if err := h.analysis.SyncStravaHistory(ctx, uid, h.strava, days); err != nil {
+			slog.Error("❌ manual sync failed", "user_id", userID, "error", err)
+		} else {
+			slog.Info("✅ manual sync completed", "user_id", userID)
+		}
+	}()
+	
+	return c.JSON(fiber.Map{
+		"status":  "syncing",
+		"message": "Activity sync started in background. Check recent activities in a few moments.",
+		"days":    days,
+	})
 }

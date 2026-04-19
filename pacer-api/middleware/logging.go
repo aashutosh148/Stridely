@@ -12,6 +12,27 @@ func LoggingMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now()
 
+		// Log incoming request
+		slog.Info("→ incoming request",
+			"method", c.Method(),
+			"path", c.Path(),
+			"ip", c.IP(),
+			"user_agent", c.Get("User-Agent"),
+			"query", c.Context().QueryArgs().String(),
+		)
+
+		// Log request body for POST/PUT/PATCH (first 500 chars)
+		if c.Method() == "POST" || c.Method() == "PUT" || c.Method() == "PATCH" {
+			body := c.Body()
+			if len(body) > 0 {
+				bodyStr := string(body)
+				if len(bodyStr) > 500 {
+					bodyStr = bodyStr[:500] + "... (truncated)"
+				}
+				slog.Debug("request body", "body", bodyStr)
+			}
+		}
+
 		// Process request
 		err := c.Next()
 
@@ -32,12 +53,24 @@ func LoggingMiddleware() fiber.Handler {
 			attrs = append(attrs, "user_id", userID)
 		}
 
+		// Log response body for errors (first 500 chars)
+		if status >= 400 {
+			respBody := c.Response().Body()
+			if len(respBody) > 0 {
+				respStr := string(respBody)
+				if len(respStr) > 500 {
+					respStr = respStr[:500] + "... (truncated)"
+				}
+				attrs = append(attrs, "response_body", respStr)
+			}
+		}
+
 		if status >= 500 {
-			slog.Error("request failed", attrs...)
+			slog.Error("← request failed", attrs...)
 		} else if status >= 400 {
-			slog.Warn("client error", attrs...)
+			slog.Warn("← client error", attrs...)
 		} else {
-			slog.Info("request", attrs...)
+			slog.Info("← request completed", attrs...)
 		}
 
 		return err

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/aashutosh148/Stridely/pacer-api/db"
 	"github.com/aashutosh148/Stridely/pacer-api/models"
 	"github.com/aashutosh148/Stridely/pacer-api/services"
@@ -34,8 +36,11 @@ func NewAuthHandler(dbConn *db.Postgres, stravaClient *services.StravaClient, an
 
 // StravaLogin redirects to Strava OAuth page
 func (h *AuthHandler) StravaLogin(c *fiber.Ctx) error {
+	slog.Info("🔐 strava login initiated", "ip", c.IP())
+	
 	clientID := os.Getenv("STRAVA_CLIENT_ID")
 	if clientID == "" {
+		slog.Error("strava client id not configured")
 		return c.Status(500).JSON(fiber.Map{"error": "STRAVA_CLIENT_ID not configured"})
 	}
 
@@ -51,16 +56,22 @@ func (h *AuthHandler) StravaLogin(c *fiber.Ctx) error {
 		clientID, redirectURI,
 	)
 
+	slog.Info("redirecting to strava oauth", "redirect_uri", redirectURI)
 	return c.Redirect(authURL, fiber.StatusTemporaryRedirect)
 }
 
 // StravaCallback handles OAuth callback from Strava
 func (h *AuthHandler) StravaCallback(c *fiber.Ctx) error {
+	slog.Info("🔐 strava callback received", "ip", c.IP())
+	
 	code := c.Query("code")
 	if code == "" {
+		slog.Error("missing authorization code in callback")
 		return c.Status(400).JSON(fiber.Map{"error": "missing authorization code"})
 	}
 
+	slog.Info("exchanging strava code for tokens", "code_length", len(code))
+	
 	// Exchange code for tokens
 	tokenResp, err := h.exchangeStravaCode(c.Context(), code)
 	if err != nil {
@@ -68,32 +79,43 @@ func (h *AuthHandler) StravaCallback(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "token exchange failed"})
 	}
 
+	slog.Info("token exchange successful", "athlete_id", tokenResp.Athlete.ID)
+
 	// Upsert user
 	user, isNewUser, err := h.upsertUser(c.Context(), tokenResp)
 	if err != nil {
-		slog.Error("user upsert failed", "error", err)
+		slog.Error("user upsert failed", "error", err, "athlete_id", tokenResp.Athlete.ID)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to create/update user"})
 	}
 
+	slog.Info("user upsert successful", "user_id", user.ID, "is_new_user", isNewUser)
+
 	// Store OAuth tokens (encrypted)
 	if err := h.storeOAuthTokens(c.Context(), user.ID, tokenResp); err != nil {
-		slog.Error("failed to store oauth tokens", "error", err)
+		slog.Error("failed to store oauth tokens", "error", err, "user_id", user.ID)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to store tokens"})
 	}
+
+	slog.Info("oauth tokens stored successfully", "user_id", user.ID)
 
 	// Generate JWT
 	jwt, err := utils.SignToken(user.ID.String())
 	if err != nil {
-		slog.Error("jwt generation failed", "error", err)
+		slog.Error("jwt generation failed", "error", err, "user_id", user.ID)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to generate token"})
 	}
+
+	slog.Info("jwt generated successfully", "user_id", user.ID)
 
 	// Kick off background sync if new user
 	if isNewUser {
 		go func() {
 			ctx := context.Background()
+			slog.Info("starting background strava history sync", "user_id", user.ID)
 			if err := h.analysis.SyncStravaHistory(ctx, user.ID, h.strava, 180); err != nil {
 				slog.Error("strava history sync failed", "user_id", user.ID, "error", err)
+			} else {
+				slog.Info("strava history sync completed", "user_id", user.ID)
 			}
 		}()
 		slog.Info("initiated strava history sync", "user_id", user.ID)
@@ -105,16 +127,20 @@ func (h *AuthHandler) StravaCallback(c *fiber.Ctx) error {
 		frontendURL = "http://localhost:3000"
 	}
 
-	redirectURL := fmt.Sprintf("%s/dashboard?token=%s", frontendURL, jwt)
+	redirectURL := fmt.Sprintf("%s/callback/strava?token=%s", frontendURL, jwt)
+	slog.Info("redirecting to frontend", "user_id", user.ID, "redirect_url", redirectURL, "token_length", len(jwt))
 	return c.Redirect(redirectURL, fiber.StatusTemporaryRedirect)
 }
 
 // exchangeStravaCode exchanges authorization code for access token
 func (h *AuthHandler) exchangeStravaCode(ctx context.Context, code string) (*services.StravaTokenResponse, error) {
+	slog.Info("📤 exchanging strava code", "code_length", len(code))
+	
 	clientID := os.Getenv("STRAVA_CLIENT_ID")
 	clientSecret := os.Getenv("STRAVA_CLIENT_SECRET")
 
 	if clientID == "" || clientSecret == "" {
+		slog.Error("strava credentials not configured")
 		return nil, fmt.Errorf("strava credentials not configured")
 	}
 
@@ -124,30 +150,40 @@ func (h *AuthHandler) exchangeStravaCode(ctx context.Context, code string) (*ser
 		clientID, clientSecret, code,
 	)
 
+	slog.Debug("calling strava token endpoint")
+
 	// Use fiber.AcquireAgent() for HTTP request
 	agent := fiber.Post(url)
 	agent.Set("Content-Type", "application/json")
 	
 	statusCode, body, errs := agent.Bytes()
 	if len(errs) > 0 {
+		slog.Error("strava token request failed", "error", errs[0])
 		return nil, fmt.Errorf("token request failed: %w", errs[0])
 	}
 
+	slog.Info("📥 strava token response", "status_code", statusCode, "body_length", len(body))
+
 	if statusCode != 200 {
+		slog.Error("strava token request failed", "status_code", statusCode, "response_body", string(body))
 		return nil, fmt.Errorf("token request failed with status %d", statusCode)
 	}
 
 	var tokenResp services.StravaTokenResponse
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
+		slog.Error("failed to decode strava token response", "error", err, "body", string(body))
 		return nil, fmt.Errorf("decode token response: %w", err)
 	}
 
+	slog.Info("strava token decoded successfully", "athlete_id", tokenResp.Athlete.ID)
 	return &tokenResp, nil
 }
 
 // upsertUser creates or updates user based on Strava athlete data
 func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.StravaTokenResponse) (*models.User, bool, error) {
 	athleteID := strconv.FormatInt(tokenResp.Athlete.ID, 10)
+	
+	slog.Info("💾 upserting user", "athlete_id", athleteID)
 
 	// Check if user exists
 	var existingUserID uuid.UUID
@@ -155,11 +191,23 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 		SELECT id FROM users WHERE strava_athlete_id = $1
 	`, athleteID).Scan(&existingUserID)
 
-	isNewUser := err == sql.ErrNoRows
+	isNewUser := errors.Is(err, pgx.ErrNoRows)
+	
+	// If there's an error other than "no rows", return it
+	if err != nil && !isNewUser {
+		slog.Error("database error checking existing user", "error", err, "athlete_id", athleteID)
+		return nil, false, fmt.Errorf("check existing user: %w", err)
+	}
 
 	if isNewUser {
+		slog.Info("creating new user", "athlete_id", athleteID)
+		
 		// Create new user
 		var newUserID uuid.UUID
+		email := fmt.Sprintf("%d@strava.user", tokenResp.Athlete.ID)
+		
+		slog.Debug("executing insert query", "email", email, "athlete_id", athleteID)
+		
 		err = h.db.Pool.QueryRow(ctx, `
 			INSERT INTO users (
 				email, runner_tier, subscription_tier, strava_athlete_id,
@@ -167,7 +215,7 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 			) VALUES ($1, $2, $3, $4, $5, $6, now(), now())
 			RETURNING id
 		`,
-			fmt.Sprintf("%d@strava.user", tokenResp.Athlete.ID), // Temporary email
+			email,
 			models.RunnerTierRecreational,
 			models.SubscriptionTierFree,
 			athleteID,
@@ -176,14 +224,15 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 		).Scan(&newUserID)
 
 		if err != nil {
+			slog.Error("failed to insert new user", "error", err, "athlete_id", athleteID, "email", email)
 			return nil, false, fmt.Errorf("create user: %w", err)
 		}
 
-		slog.Info("created new user", "user_id", newUserID, "strava_athlete_id", athleteID)
+		slog.Info("✅ created new user", "user_id", newUserID, "strava_athlete_id", athleteID)
 
 		return &models.User{
 			ID:                newUserID,
-			Email:             fmt.Sprintf("%d@strava.user", tokenResp.Athlete.ID),
+			Email:             email,
 			RunnerTier:        models.RunnerTierRecreational,
 			SubscriptionTier:  models.SubscriptionTierFree,
 			StravaAthleteID:   sql.NullString{String: athleteID, Valid: true},
@@ -193,12 +242,15 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 		}, true, nil
 	}
 
+	slog.Info("updating existing user", "user_id", existingUserID, "athlete_id", athleteID)
+
 	// Update existing user
 	_, err = h.db.Pool.Exec(ctx, `
 		UPDATE users SET updated_at = now() WHERE id = $1
 	`, existingUserID)
 
 	if err != nil {
+		slog.Error("failed to update user", "error", err, "user_id", existingUserID)
 		return nil, false, fmt.Errorf("update user: %w", err)
 	}
 
@@ -215,27 +267,37 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 	)
 
 	if err != nil {
+		slog.Error("failed to fetch user after update", "error", err, "user_id", existingUserID)
 		return nil, false, fmt.Errorf("fetch user: %w", err)
 	}
+
+	slog.Info("✅ user fetched successfully", "user_id", user.ID)
 
 	return &user, false, nil
 }
 
 // storeOAuthTokens encrypts and stores OAuth tokens
 func (h *AuthHandler) storeOAuthTokens(ctx context.Context, userID uuid.UUID, tokenResp *services.StravaTokenResponse) error {
+	slog.Info("🔐 storing oauth tokens", "user_id", userID)
+	
 	// Encrypt tokens
 	accessTokenEnc, err := utils.Encrypt(tokenResp.AccessToken)
 	if err != nil {
+		slog.Error("failed to encrypt access token", "error", err, "user_id", userID)
 		return fmt.Errorf("encrypt access token: %w", err)
 	}
 
 	refreshTokenEnc, err := utils.Encrypt(tokenResp.RefreshToken)
 	if err != nil {
+		slog.Error("failed to encrypt refresh token", "error", err, "user_id", userID)
 		return fmt.Errorf("encrypt refresh token: %w", err)
 	}
 
 	// Store in database
 	expiresAt := time.Unix(tokenResp.ExpiresAt, 0)
+	
+	slog.Debug("inserting oauth tokens", "user_id", userID, "expires_at", expiresAt)
+	
 	_, err = h.db.Pool.Exec(ctx, `
 		INSERT INTO oauth_tokens (
 			user_id, provider, access_token_enc, refresh_token_enc,
@@ -255,10 +317,11 @@ func (h *AuthHandler) storeOAuthTokens(ctx context.Context, userID uuid.UUID, to
 	)
 
 	if err != nil {
+		slog.Error("failed to store oauth tokens in db", "error", err, "user_id", userID)
 		return fmt.Errorf("store oauth tokens: %w", err)
 	}
 
-	slog.Info("oauth tokens stored", "user_id", userID, "provider", "strava")
+	slog.Info("✅ oauth tokens stored", "user_id", userID, "provider", "strava")
 	return nil
 }
 

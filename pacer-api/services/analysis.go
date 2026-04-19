@@ -593,6 +593,14 @@ func (s *AnalysisService) GetLatestFitnessMetrics(ctx context.Context, userID uu
 	`
 	err = s.db.Pool.QueryRow(ctx, query, userID).Scan(&ctl, &atl, &tsb)
 	if err != nil {
+		// If no snapshot exists, compute on-the-fly
+		if err == sql.ErrNoRows {
+			slog.Info("no fitness snapshot found, computing on-the-fly", "user_id", userID)
+			ctl = s.computeCTL(ctx, userID, 42)
+			atl = s.computeATL(ctx, userID, 7)
+			tsb = ctl - atl
+			return ctl, atl, tsb, nil
+		}
 		return 0, 0, 0, err
 	}
 	return ctl, atl, tsb, nil
