@@ -55,37 +55,36 @@ export default function PlanPage() {
 
   return (
     <div className="space-y-6">
-      {/* Gradient Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 shadow-lg">
-        <div className="absolute inset-0 bg-black/5"></div>
+      {/* Dark Hero Header */}
+      <div className="relative overflow-hidden rounded-lg bg-[#161b26] p-8 border border-gray-800">
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600">
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Training Plan</h1>
-              <p className="text-sm text-white/80">Your personalized path to success</p>
+              <h1 className="text-3xl font-bold text-gray-100">Training Plan</h1>
+              <p className="text-sm text-gray-400">Your personalized path to success</p>
             </div>
           </div>
 
           {effectiveRaceDate && daysUntilRace !== null && (
             <div className="mt-6 flex flex-wrap gap-4">
-              <div className="rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <div className="rounded-lg bg-[#1e2530] px-4 py-3 border border-gray-800">
                 <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-white/80" />
+                  <Target className="h-5 w-5 text-gray-400" />
                   <div>
-                    <p className="text-xs font-medium text-white/60">Race Day</p>
-                    <p className="text-lg font-bold text-white">{formatDateLong(effectiveRaceDate)}</p>
+                    <p className="text-xs font-medium text-gray-500">Race Day</p>
+                    <p className="text-lg font-bold text-gray-100">{formatDateLong(effectiveRaceDate)}</p>
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <div className="rounded-lg bg-[#1e2530] px-4 py-3 border border-gray-800">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-white/80" />
+                  <Zap className="h-5 w-5 text-gray-400" />
                   <div>
-                    <p className="text-xs font-medium text-white/60">Days Until Race</p>
-                    <p className="text-lg font-bold text-white">{daysUntilRace} days</p>
+                    <p className="text-xs font-medium text-gray-500">Days Until Race</p>
+                    <p className="text-lg font-bold text-gray-100">{daysUntilRace} days</p>
                   </div>
                 </div>
               </div>
@@ -95,17 +94,17 @@ export default function PlanPage() {
       </div>
 
       {!hasActivePlan && !activeLoading && (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6">
-            <h2 className="text-xl font-bold text-gray-900">Generate Your Training Plan</h2>
-            <p className="mt-1 text-sm text-gray-600">
+        <div className="overflow-hidden rounded-lg border border-gray-800 bg-[#161b26]">
+          <div className="bg-[#1e2530] p-6 border-b border-gray-800">
+            <h2 className="text-xl font-bold text-gray-100">Generate Your Training Plan</h2>
+            <p className="mt-1 text-sm text-gray-400">
               No active training plan found. Enter your race date to generate a personalized training schedule.
             </p>
           </div>
           <div className="p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               <div className="flex-1">
-                <label htmlFor="race_date" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="race_date" className="block text-sm font-medium text-gray-300">
                   Target Race Date
                 </label>
                 <input
@@ -113,21 +112,21 @@ export default function PlanPage() {
                   type="date"
                   value={raceDate}
                   onChange={(e) => setRaceDate(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  className="mt-1 w-full rounded-lg border border-gray-800 bg-[#1e2530] px-4 py-2 text-sm text-gray-100 transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
                 />
               </div>
               <button
                 type="button"
                 onClick={onGeneratePlan}
                 disabled={!raceDate || generatePlan.isPending}
-                className="rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition hover:shadow-lg disabled:opacity-50"
+                className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
               >
                 {generatePlan.isPending ? 'Generating...' : 'Generate Plan'}
               </button>
             </div>
             {generatePlan.error && (
-              <div className="mt-4 rounded-lg bg-rose-50 p-4">
-                <p className="text-sm text-rose-600">Failed to generate plan. Please retry.</p>
+              <div className="mt-4 rounded-lg bg-red-900/50 border border-red-800 p-4">
+                <p className="text-sm text-red-400">Failed to generate plan. Please retry.</p>
               </div>
             )}
           </div>

@@ -10,7 +10,7 @@ interface ZoneShape {
   z5_pct?: number;
 }
 
-const COLORS = ['#38BDF8', '#60A5FA', '#FACC15', '#FB923C', '#F43F5E'];
+const COLORS = ['#3b82f6', '#60a5fa', '#eab308', '#f97316', '#ef4444'];
 
 function toData(source?: ZoneShape) {
   return [
@@ -25,10 +25,7 @@ function toData(source?: ZoneShape) {
 export function ZoneDonut({ actual, prescribed, isLoading }: { actual?: ZoneShape; prescribed?: ZoneShape; isLoading?: boolean }) {
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
-        <div className="mt-4 h-56 animate-pulse rounded bg-gray-100" />
-      </div>
+      <div className="h-56 animate-pulse rounded bg-gray-800/30" />
     );
   }
 
@@ -36,9 +33,8 @@ export function ZoneDonut({ actual, prescribed, isLoading }: { actual?: ZoneShap
   const prescribedData = toData(prescribed);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-gray-900">Zone Distribution</h2>
-      <div className="mt-4 h-56 w-full">
+    <div>
+      <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie data={actualData} dataKey="value" nameKey="name" innerRadius={46} outerRadius={72} paddingAngle={2}>
@@ -51,19 +47,26 @@ export function ZoneDonut({ actual, prescribed, isLoading }: { actual?: ZoneShap
                 const n = typeof value === 'number' ? value : Number(value ?? 0);
                 return [`${n.toFixed(1)}%`, String(name)];
               }}
+              contentStyle={{ 
+                backgroundColor: '#161b26', 
+                border: '1px solid #374151',
+                borderRadius: 8,
+                color: '#e5e7eb'
+              }}
+              labelStyle={{ color: '#9ca3af' }}
             />
           </PieChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-3 grid grid-cols-5 gap-2 text-center text-xs">
+      <div className="mt-4 grid grid-cols-5 gap-2 text-center text-xs">
         {actualData.map((z, idx) => (
-          <div key={z.name} className="rounded-md bg-gray-50 p-2">
+          <div key={z.name} className="rounded bg-[#1e2530] border border-gray-800 p-2">
             <p className="font-semibold" style={{ color: COLORS[idx] }}>
               {z.name}
             </p>
-            <p className="text-gray-700">{z.value.toFixed(0)}%</p>
-            <p className="text-gray-400">/{prescribedData[idx].value.toFixed(0)}%</p>
+            <p className="text-gray-300">{z.value.toFixed(0)}%</p>
+            <p className="text-gray-500 text-xs">/{prescribedData[idx].value.toFixed(0)}%</p>
           </div>
         ))}
       </div>

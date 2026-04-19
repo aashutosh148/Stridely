@@ -32,27 +32,27 @@ export function ChatWindow({ messages, isStreaming, toolsActive, error, onSend }
   }
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+    <div className="flex h-[calc(100vh-9rem)] flex-col overflow-hidden rounded-lg border border-gray-800 bg-[#161b26]">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 px-6 py-5">
+      <div className="bg-blue-600 px-6 py-5 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
             <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Coach Chat</h1>
-            <p className="text-sm text-white/80">Get personalized training insights and advice</p>
+            <p className="text-sm text-blue-100">Get personalized training insights and advice</p>
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 space-y-4 overflow-y-auto bg-gradient-to-b from-gray-50 to-white p-6">
+      <div className="flex-1 space-y-4 overflow-y-auto bg-[#0b0f19] p-6">
         {showSuggestions ? (
-          <div className="rounded-xl border-2 border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+          <div className="rounded-lg border-2 border-dashed border-gray-800 bg-[#161b26] p-6">
             <div className="mb-4 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-indigo-600" />
-              <p className="font-semibold text-indigo-900">Get started with these questions:</p>
+              <Sparkles className="h-5 w-5 text-blue-500" />
+              <p className="font-semibold text-gray-100">Get started with these questions:</p>
             </div>
             <div className="flex flex-wrap gap-3">
               {suggestedPrompts.map((prompt) => (
@@ -60,7 +60,7 @@ export function ChatWindow({ messages, isStreaming, toolsActive, error, onSend }
                   key={prompt}
                   type="button"
                   onClick={() => setInput(prompt)}
-                  className="rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
+                  className="rounded-lg border border-gray-800 bg-[#1e2530] px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-blue-600 hover:bg-[#1e2530]/80"
                 >
                   {prompt}
                 </button>
@@ -76,10 +76,10 @@ export function ChatWindow({ messages, isStreaming, toolsActive, error, onSend }
             style={{ animationDelay: `${idx * 50}ms` }}
           >
             <div
-              className={`max-w-[85%] rounded-2xl px-5 py-4 text-sm shadow-md sm:max-w-[70%] ${
+              className={`max-w-[85%] rounded-lg px-5 py-4 text-sm sm:max-w-[70%] ${
                 message.role === 'user'
-                  ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white'
-                  : 'border border-gray-200 bg-white text-gray-800'
+                  ? 'bg-blue-600 text-white'
+                  : 'border border-gray-800 bg-[#161b26] text-gray-100'
               }`}
             >
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold opacity-80">
@@ -101,21 +101,21 @@ export function ChatWindow({ messages, isStreaming, toolsActive, error, onSend }
         ))}
 
         {isStreaming && toolsActive.length > 0 ? (
-          <div className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 px-4 py-2 text-xs font-semibold text-amber-800 shadow-sm">
+          <div className="inline-flex items-center gap-2 rounded-lg bg-amber-900/50 border border-amber-800 px-4 py-2 text-xs font-semibold text-amber-400">
             <Sparkles className="h-4 w-4 animate-pulse" />
             <span className="animate-pulse">Analyzing your training data...</span>
           </div>
         ) : null}
 
         {error ? (
-          <div className="rounded-xl bg-rose-50 p-4">
-            <p className="text-sm font-medium text-rose-600">{error}</p>
+          <div className="rounded-lg bg-red-900/50 border border-red-800 p-4">
+            <p className="text-sm font-medium text-red-400">{error}</p>
           </div>
         ) : null}
       </div>
 
       {/* Input Form */}
-      <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white p-5">
+      <form onSubmit={handleSubmit} className="border-t border-gray-800 bg-[#161b26] p-5">
         <div className="flex items-center gap-3">
           <input
             type="text"
@@ -123,12 +123,12 @@ export function ChatWindow({ messages, isStreaming, toolsActive, error, onSend }
             onChange={(event) => setInput(event.target.value)}
             placeholder="Ask about your training, nutrition, or race strategy..."
             disabled={isStreaming}
-            className="w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 disabled:bg-gray-100"
+            className="w-full rounded-lg border-2 border-gray-800 bg-[#1e2530] px-4 py-3 text-sm text-gray-100 placeholder-gray-500 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 disabled:bg-[#1e2530]/50"
           />
           <button
             type="submit"
             disabled={isStreaming || !input.trim()}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send size={16} />
             Send

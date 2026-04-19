@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '../../hooks/useUser';
-import { ConnectBanner } from '../../components/connect-banner';
 import { NotificationToaster } from '../../components/notification-toaster';
 import {
   Home,
@@ -53,30 +52,29 @@ export default function AppLayout({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center bg-[#0b0f19]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
       </div>
     );
   }
 
-  // Very basic countdown for target race. Should eventually be fetched from the backend or user object if available.
   const daysToRace = user?.targetRaceId ? 42 : null; 
 
   return (
-    <div>
+    <div className="bg-[#0b0f19]">
       {/* Mobile sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)} />
-          <div className="relative mr-16 flex w-full max-w-xs flex-1 flex-col bg-white">
+          <div className="fixed inset-0 bg-black/80" onClick={() => setSidebarOpen(false)} />
+          <div className="relative mr-16 flex w-full max-w-xs flex-1 flex-col bg-[#161b26]">
             <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
               <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
                 <span className="sr-only">Close sidebar</span>
-                <X className="h-6 w-6 text-white" aria-hidden="true" />
+                <X className="h-6 w-6 text-gray-400" aria-hidden="true" />
               </button>
             </div>
             <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
-              <div className="flex h-16 shrink-0 items-center font-bold text-xl text-indigo-600">
+              <div className="flex h-16 shrink-0 items-center font-bold text-xl text-gray-100">
                 Pacer
               </div>
               <nav className="flex flex-1 flex-col">
@@ -90,13 +88,13 @@ export default function AppLayout({
                             <Link
                               href={item.href}
                               className={`
-                                group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold
-                                ${isCurrent ? 'bg-gray-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-50 hover:text-indigo-600'}
+                                group flex gap-x-3 rounded p-2 text-sm leading-6 font-medium transition-all
+                                ${isCurrent ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-[#1e2530] hover:text-gray-200'}
                               `}
                               onClick={() => setSidebarOpen(false)}
                             >
                               <item.icon
-                                className={`h-6 w-6 shrink-0 ${isCurrent ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600'}`}
+                                className={`h-5 w-5 shrink-0 ${isCurrent ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}
                                 aria-hidden="true"
                               />
                               {item.name}
@@ -109,9 +107,9 @@ export default function AppLayout({
                   <li className="mt-auto">
                     <button
                       onClick={handleLogout}
-                      className="group -mx-2 flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                      className="group -mx-2 flex w-full gap-x-3 rounded p-2 text-sm font-medium leading-6 text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all border border-transparent hover:border-red-500/30"
                     >
-                      <LogOut className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600" aria-hidden="true" />
+                      <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
                       Logout
                     </button>
                   </li>
@@ -123,31 +121,31 @@ export default function AppLayout({
       )}
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 px-6 pb-4 border-r border-gray-700">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-[#161b26] px-6 pb-4 border-r border-gray-800">
           <div className="flex h-16 shrink-0 items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                 <span className="text-white font-bold text-lg">P</span>
               </div>
-              <span className="font-bold text-2xl bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Pacer</span>
+              <span className="font-bold text-xl text-gray-100 tracking-tight">Pacer</span>
             </div>
-            {user?.tier && (
-              <span className="inline-flex items-center rounded-full bg-indigo-500/20 px-2.5 py-1 text-xs font-semibold text-indigo-300 ring-1 ring-inset ring-indigo-500/30">
-                {user.tier}
+            {user?.runner_tier && (
+              <span className="inline-flex items-center rounded bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-400 border border-blue-500/30">
+                {user.runner_tier}
               </span>
             )}
           </div>
           
           {daysToRace !== null && (
-             <div className="rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 p-4 border border-indigo-500/30 backdrop-blur-sm">
+             <div className="rounded-lg bg-blue-500/10 p-4 border border-blue-500/30">
                 <div className="flex items-center">
-                  <Trophy className="h-5 w-5 text-indigo-400" />
-                  <h3 className="ml-2 text-sm font-medium text-indigo-300">Next Race</h3>
+                  <Trophy className="h-5 w-5 text-blue-400" />
+                  <h3 className="ml-2 text-sm font-medium text-gray-300">Next Race</h3>
                 </div>
                 <div className="mt-2 flex items-baseline gap-x-2">
-                  <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{daysToRace}</span>
-                  <span className="text-sm font-medium text-indigo-300">days to go</span>
+                  <span className="text-3xl font-bold tracking-tight text-blue-400">{daysToRace}</span>
+                  <span className="text-sm font-medium text-gray-400">days to go</span>
                 </div>
              </div>
           )}
@@ -163,15 +161,15 @@ export default function AppLayout({
                         <Link
                           href={item.href}
                           className={`
-                            group flex gap-x-3 rounded-xl p-3 text-sm leading-6 font-semibold transition-all duration-200
+                            group flex gap-x-3 rounded p-2 text-sm leading-6 font-medium transition-all
                             ${isCurrent 
-                              ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/50' 
-                              : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                              ? 'bg-blue-600 text-white' 
+                              : 'text-gray-400 hover:bg-[#1e2530] hover:text-gray-200'
                             }
                           `}
                         >
                           <item.icon
-                            className={`h-6 w-6 shrink-0 transition-transform duration-200 ${isCurrent ? 'text-white scale-110' : 'text-gray-400 group-hover:text-white group-hover:scale-110'}`}
+                            className={`h-5 w-5 shrink-0 ${isCurrent ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}
                             aria-hidden="true"
                           />
                           {item.name}
@@ -184,9 +182,9 @@ export default function AppLayout({
               <li className="mt-auto">
                 <button
                   onClick={handleLogout}
-                  className="group -mx-2 flex w-full gap-x-3 rounded-xl p-3 text-sm font-semibold leading-6 text-gray-300 hover:bg-rose-500/20 hover:text-rose-300 transition-all duration-200"
+                  className="group -mx-2 flex w-full gap-x-3 rounded p-2 text-sm font-medium leading-6 text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all border border-transparent hover:border-red-500/30"
                 >
-                  <LogOut className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-rose-300 transition-colors" aria-hidden="true" />
+                  <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
                   Logout
                 </button>
               </li>
@@ -195,9 +193,9 @@ export default function AppLayout({
         </div>
       </div>
 
-      <div className="lg:pl-72">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white/80 backdrop-blur-md px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:hidden">
-          <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
+      <div className="lg:pl-64">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-800 bg-[#161b26] px-4 sm:gap-x-6 sm:px-6 lg:hidden">
+          <button type="button" className="-m-2.5 p-2.5 text-gray-400 lg:hidden" onClick={() => setSidebarOpen(true)}>
             <span className="sr-only">Open sidebar</span>
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
@@ -205,27 +203,24 @@ export default function AppLayout({
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center">
                   <span className="text-white font-bold">P</span>
                 </div>
-                <span className="font-bold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Pacer</span>
+                <span className="font-bold text-lg text-gray-100">Pacer</span>
               </div>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-               {user?.tier && (
-                <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                  {user.tier}
+               {user?.runner_tier && (
+                <span className="inline-flex items-center rounded bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-400 border border-blue-500/30">
+                  {user.runner_tier}
                 </span>
                )}
             </div>
           </div>
         </div>
 
-        <main className="py-10 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-screen">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <ConnectBanner />
-            {children}
-          </div>
+        <main className="bg-[#0b0f19] min-h-screen">
+          {children}
         </main>
       </div>
       <NotificationToaster />
