@@ -1,0 +1,6 @@
+ALTER TABLE users ADD COLUMN first_name TEXT;
+ALTER TABLE users ADD COLUMN last_name TEXT;
+ALTER TABLE users ADD COLUMN profile_picture_url TEXT;
+ALTER TABLE users ADD COLUMN bio TEXT;
+ALTER TABLE users ADD COLUMN city TEXT;
+ALTER TABLE users ADD COLUMN state TEXT;

@@ -212,8 +212,9 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 		err = h.db.Pool.QueryRow(ctx, `
 			INSERT INTO users (
 				email, runner_tier, subscription_tier, strava_athlete_id,
-				preferred_language, notification_prefs, created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, now(), now())
+				preferred_language, notification_prefs, created_at, updated_at,
+				first_name, last_name, profile_picture_url, bio, city, state
+			) VALUES ($1, $2, $3, $4, $5, $6, now(), now(), $7, $8, $9, $10, $11, $12)
 			RETURNING id
 		`,
 			email,
@@ -222,6 +223,12 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 			athleteID,
 			"en",
 			`{"push": true, "quiet_hours": ["22:00", "06:00"]}`,
+			tokenResp.Athlete.Firstname,
+			tokenResp.Athlete.Lastname,
+			tokenResp.Athlete.Profile,
+			tokenResp.Athlete.Bio,
+			tokenResp.Athlete.City,
+			tokenResp.Athlete.State,
 		).Scan(&newUserID)
 
 		if err != nil {
@@ -236,7 +243,7 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 			Email:             email,
 			RunnerTier:        models.RunnerTierRecreational,
 			SubscriptionTier:  models.SubscriptionTierFree,
-			StravaAthleteID:   sql.NullString{String: athleteID, Valid: true},
+			StravaAthleteID:   models.NullString{NullString: sql.NullString{String: athleteID, Valid: true}},
 			PreferredLanguage: "en",
 			CreatedAt:         time.Now(),
 			UpdatedAt:         time.Now(),
@@ -247,8 +254,23 @@ func (h *AuthHandler) upsertUser(ctx context.Context, tokenResp *services.Strava
 
 	// Update existing user
 	_, err = h.db.Pool.Exec(ctx, `
-		UPDATE users SET updated_at = now() WHERE id = $1
-	`, existingUserID)
+		UPDATE users 
+		SET updated_at = now(),
+		    first_name = $2,
+		    last_name = $3,
+		    profile_picture_url = $4,
+		    bio = $5,
+		    city = $6,
+		    state = $7
+		WHERE id = $1
+	`, existingUserID,
+		tokenResp.Athlete.Firstname,
+		tokenResp.Athlete.Lastname,
+		tokenResp.Athlete.Profile,
+		tokenResp.Athlete.Bio,
+		tokenResp.Athlete.City,
+		tokenResp.Athlete.State,
+	)
 
 	if err != nil {
 		slog.Error("failed to update user", "error", err, "user_id", existingUserID)
@@ -333,12 +355,15 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	var user models.User
 	err := h.db.Pool.QueryRow(c.Context(), `
 		SELECT id, email, runner_tier, subscription_tier, goal_time_s,
-		       target_race_date, strava_athlete_id, garmin_user_id, created_at
+		       target_race_date, strava_athlete_id, garmin_user_id, created_at,
+		       first_name, last_name, profile_picture_url, bio, city, state
 		FROM users WHERE id = $1
 	`, userID).Scan(
 		&user.ID, &user.Email, &user.RunnerTier, &user.SubscriptionTier,
 		&user.GoalTimeS, &user.TargetRaceDate, &user.StravaAthleteID,
 		&user.GarminUserID, &user.CreatedAt,
+		&user.FirstName, &user.LastName, &user.ProfilePictureURL,
+		&user.Bio, &user.City, &user.State,
 	)
 
 	if err != nil {
