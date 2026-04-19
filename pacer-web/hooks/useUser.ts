@@ -3,6 +3,8 @@ import { api, AuthMeResponse, User } from '../lib/api';
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
+  const [isStravaConnected, setIsStravaConnected] = useState(false);
+  const [isGarminConnected, setIsGarminConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -17,6 +19,8 @@ export function useUser() {
 
         const data = await api.get<AuthMeResponse>('/auth/me');
         setUser(data.user);
+        setIsStravaConnected(data.strava_connected);
+        setIsGarminConnected(data.garmin_connected);
       } catch (err: unknown) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
         localStorage.removeItem('pacer_token');
@@ -32,8 +36,8 @@ export function useUser() {
     user,
     isLoading,
     error,
-    isStravaConnected: user?.isStravaConnected || false,
-    isGarminConnected: user?.isGarminConnected || false,
-    isConnected: user?.isStravaConnected || user?.isGarminConnected || false,
+    isStravaConnected,
+    isGarminConnected,
+    isConnected: isStravaConnected || isGarminConnected,
   };
 }

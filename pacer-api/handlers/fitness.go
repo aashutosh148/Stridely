@@ -26,18 +26,14 @@ func (h *FitnessHandler) GetMetrics(c *fiber.Ctx) error {
 	}
 
 	ctl, atl, tsb, err := h.analysis.GetLatestFitnessMetrics(c.Context(), uid)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return c.JSON(fiber.Map{
-				"ctl":            0,
-				"atl":            0,
-				"tsb":            0,
-				"state":          "productive_training",
-				"race_readiness": false,
-			})
-		}
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		slog.Error("failed to fetch fitness metrics", "error", err, "user_id", userID)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch fitness metrics"})
+	}
+	
+	// If no fitness metrics found, use zeros
+	if errors.Is(err, pgx.ErrNoRows) {
+		ctl, atl, tsb = 0, 0, 0
 	}
 
 	state := "productive_training"
@@ -55,12 +51,29 @@ func (h *FitnessHandler) GetMetrics(c *fiber.Ctx) error {
 		state = "tired"
 	}
 
+	// Get zone distribution for this week
+	zoneDistThisWeek, err := h.analysis.GetZoneDistributionThisWeek(c.Context(), uid)
+	if err != nil {
+		slog.Error("failed to fetch zone distribution", "error", err, "user_id", userID)
+		// Return empty zone distribution on error
+		zoneDistThisWeek = map[string]float64{
+			"z1_pct": 0,
+			"z2_pct": 0,
+			"z3_pct": 0,
+			"z4_pct": 0,
+			"z5_pct": 0,
+		}
+	}
+
+	slog.Info("zone distribution fetched", "user_id", userID, "zones", zoneDistThisWeek)
+
 	return c.JSON(fiber.Map{
-		"ctl":            ctl,
-		"atl":            atl,
-		"tsb":            tsb,
-		"state":          state,
-		"race_readiness": raceReadiness,
+		"ctl":                         ctl,
+		"atl":                         atl,
+		"tsb":                         tsb,
+		"state":                       state,
+		"race_readiness":              raceReadiness,
+		"zone_distribution_this_week": zoneDistThisWeek,
 	})
 }
 

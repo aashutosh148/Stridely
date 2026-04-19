@@ -381,7 +381,211 @@ func (s *AnalysisService) SyncStravaHistory(ctx context.Context, userID uuid.UUI
 	}
 
 	slog.Info("strava history sync complete", "user_id", userID, "activities_processed", totalProcessed)
+	
+	// After sync, infer max_hr if not set
+	go s.inferAndSetMaxHR(context.Background(), userID)
+	
 	return nil
+}
+
+// inferAndSetMaxHR infers max HR from activities and sets it on user profile if not already set
+func (s *AnalysisService) inferAndSetMaxHR(ctx context.Context, userID uuid.UUID) {
+	// Check if user already has max_hr set
+	var currentMaxHR sql.NullInt32
+	err := s.db.Pool.QueryRow(ctx, `SELECT max_hr FROM users WHERE id = $1`, userID).Scan(&currentMaxHR)
+	if err != nil {
+		slog.Warn("failed to check user max_hr", "user_id", userID, "error", err)
+		return
+	}
+	
+	// If already set, don't override
+	if currentMaxHR.Valid && currentMaxHR.Int32 > 0 {
+		slog.Info("user max_hr already set", "user_id", userID, "max_hr", currentMaxHR.Int32)
+		return
+	}
+	
+	// Get max HR from activities
+	var inferredMaxHR sql.NullInt32
+	err = s.db.Pool.QueryRow(ctx, `
+		SELECT MAX(max_hr) FROM activities 
+		WHERE user_id = $1 AND max_hr IS NOT NULL AND max_hr > 0
+	`, userID).Scan(&inferredMaxHR)
+	
+	if err != nil || !inferredMaxHR.Valid || inferredMaxHR.Int32 == 0 {
+		slog.Info("no max_hr data found in activities", "user_id", userID)
+		return
+	}
+	
+	// Update user with inferred max_hr
+	_, err = s.db.Pool.Exec(ctx, `UPDATE users SET max_hr = $1 WHERE id = $2`, inferredMaxHR.Int32, userID)
+	if err != nil {
+		slog.Error("failed to set inferred max_hr", "user_id", userID, "error", err)
+		return
+	}
+	
+	slog.Info("✅ inferred and set max_hr from activities", "user_id", userID, "max_hr", inferredMaxHR.Int32)
+	
+	// Now recalculate zones for all activities
+	s.recalculateZonesFromDB(ctx, userID, int(inferredMaxHR.Int32))
+}
+
+// recalculateZonesFromDB recalculates HR zones for all activities using existing splits data
+func (s *AnalysisService) recalculateZonesFromDB(ctx context.Context, userID uuid.UUID, maxHR int) {
+	slog.Info("🔄 recalculating HR zones from existing data", "user_id", userID, "max_hr", maxHR)
+	
+	// Get all activities with splits data
+	rows, err := s.db.Pool.Query(ctx, `
+		SELECT id, splits_km
+		FROM activities
+		WHERE user_id = $1 
+		  AND splits_km IS NOT NULL 
+		  AND splits_km != 'null'::jsonb
+	`, userID)
+	
+	if err != nil {
+		slog.Error("failed to query activities for zone recalc", "user_id", userID, "error", err)
+		return
+	}
+	defer rows.Close()
+	
+	updated := 0
+	for rows.Next() {
+		var activityID uuid.UUID
+		var splitsJSON []byte
+		
+		if err := rows.Scan(&activityID, &splitsJSON); err != nil {
+			continue
+		}
+		
+		// Parse splits
+		var splits []models.Split
+		if err := json.Unmarshal(splitsJSON, &splits); err != nil {
+			continue
+		}
+		
+		// Check if any split has HR data
+		hasHR := false
+		for _, split := range splits {
+			if split.HR > 0 {
+				hasHR = true
+				break
+			}
+		}
+		
+		if !hasHR {
+			continue
+		}
+		
+		// Calculate zone distribution
+		var totalTime int
+		var z1Time, z2Time, z3Time, z4Time, z5Time int
+		
+		for _, split := range splits {
+			if split.HR == 0 {
+				continue
+			}
+			
+			// Estimate time per km from pace (pace_s is seconds per km)
+			time := int(split.PaceS)
+			totalTime += time
+			
+			hrPct := (float64(split.HR) / float64(maxHR)) * 100
+			
+			switch {
+			case hrPct < 60:
+				z1Time += time
+			case hrPct < 70:
+				z2Time += time
+			case hrPct < 80:
+				z3Time += time
+			case hrPct < 90:
+				z4Time += time
+			default:
+				z5Time += time
+			}
+		}
+		
+		if totalTime > 0 {
+			zoneDist := models.ZoneDistribution{
+				Z1Pct: float64(z1Time) / float64(totalTime) * 100,
+				Z2Pct: float64(z2Time) / float64(totalTime) * 100,
+				Z3Pct: float64(z3Time) / float64(totalTime) * 100,
+				Z4Pct: float64(z4Time) / float64(totalTime) * 100,
+				Z5Pct: float64(z5Time) / float64(totalTime) * 100,
+			}
+			
+			zoneJSON, _ := json.Marshal(zoneDist)
+			
+			_, err = s.db.Pool.Exec(ctx, `
+				UPDATE activities SET zone_distribution = $1 WHERE id = $2
+			`, zoneJSON, activityID)
+			
+			if err == nil {
+				updated++
+			}
+		}
+	}
+	
+	slog.Info("✅ zone recalculation complete", "user_id", userID, "activities_updated", updated)
+}
+
+// GetZoneDistributionThisWeek aggregates zone distribution from activities in the last 7 days
+func (s *AnalysisService) GetZoneDistributionThisWeek(ctx context.Context, userID uuid.UUID) (map[string]float64, error) {
+	// Get all activities from the last 7 days with zone data
+	rows, err := s.db.Pool.Query(ctx, `
+		SELECT zone_distribution
+		FROM activities
+		WHERE user_id = $1
+		  AND activity_date >= CURRENT_DATE - INTERVAL '7 days'
+		  AND zone_distribution IS NOT NULL
+		  AND zone_distribution != 'null'::jsonb
+	`, userID)
+	
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	
+	var totalZ1, totalZ2, totalZ3, totalZ4, totalZ5 float64
+	count := 0
+	
+	for rows.Next() {
+		var zoneJSON []byte
+		if err := rows.Scan(&zoneJSON); err != nil {
+			continue
+		}
+		
+		var zone models.ZoneDistribution
+		if err := json.Unmarshal(zoneJSON, &zone); err != nil {
+			continue
+		}
+		
+		totalZ1 += zone.Z1Pct
+		totalZ2 += zone.Z2Pct
+		totalZ3 += zone.Z3Pct
+		totalZ4 += zone.Z4Pct
+		totalZ5 += zone.Z5Pct
+		count++
+	}
+	
+	if count == 0 {
+		return map[string]float64{
+			"z1_pct": 0,
+			"z2_pct": 0,
+			"z3_pct": 0,
+			"z4_pct": 0,
+			"z5_pct": 0,
+		}, nil
+	}
+	
+	// Return average distribution across the week
+	return map[string]float64{
+		"z1_pct": totalZ1 / float64(count),
+		"z2_pct": totalZ2 / float64(count),
+		"z3_pct": totalZ3 / float64(count),
+		"z4_pct": totalZ4 / float64(count),
+		"z5_pct": totalZ5 / float64(count),
+	}, nil
 }
 
 // ComputeAndStoreCTLATLTSB calculates current fitness metrics and caches them in Redis
