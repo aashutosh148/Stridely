@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/aashutosh148/Stridely/pacer-api/db"
 )
 
@@ -52,7 +55,7 @@ func (h *ReadinessHandler) Today(c *fiber.Ctx) error {
 		ORDER BY created_at DESC
 		LIMIT 1
 	`, uid).Scan(&w.ID, &w.WorkoutType, &w.DistanceKM, &w.DurationMin, &w.Description, &w.Purpose, &w.Status)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return c.JSON(fiber.Map{
 			"date":            time.Now().UTC().Format("2006-01-02"),
 			"score":           int32Or(score, 6),
@@ -67,6 +70,7 @@ func (h *ReadinessHandler) Today(c *fiber.Ctx) error {
 		})
 	}
 	if err != nil {
+		slog.Error("failed to query today's workout", "error", err, "user_id", userID)
 		return c.Status(500).JSON(fiber.Map{"error": "database error"})
 	}
 

@@ -40,12 +40,12 @@ export default function PlanPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Training Plan</h1>
-        {effectiveRaceDate ? (
+        {effectiveRaceDate && (
           <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">Race: {effectiveRaceDate}</span>
-        ) : null}
+        )}
       </div>
 
-      {!hasActivePlan && !activeLoading ? (
+      {!hasActivePlan && !activeLoading && (
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">Generate Plan</h2>
           <p className="mt-1 text-sm text-gray-600">No active training plan found. Add your race date to generate one.</p>
@@ -71,9 +71,9 @@ export default function PlanPage() {
               {generatePlan.isPending ? 'Generating...' : 'Generate Plan'}
             </button>
           </div>
-          {generatePlan.error ? <p className="mt-3 text-sm text-rose-600">Failed to generate plan. Please retry.</p> : null}
+          {generatePlan.error && <p className="mt-3 text-sm text-rose-600">Failed to generate plan. Please retry.</p>}
         </div>
-      ) : null}
+      )}
 
       <PlanCalendar workouts={weekPlan?.workouts ?? []} weekStart={weekPlan?.week_start} isLoading={weekLoading} />
     </div>

@@ -20,7 +20,7 @@ export function ConnectBanner() {
             <div className="-mx-2 -my-1.5 flex flex-wrap">
               {!isStravaConnected && (
                 <button
-                  onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/strava`}
+                  onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/auth/strava`}
                   className="rounded-md bg-yellow-100 px-2 py-1.5 text-sm font-medium text-yellow-800 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-yellow-50 mr-3"
                 >
                   Connect Strava

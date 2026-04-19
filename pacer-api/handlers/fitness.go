@@ -1,10 +1,12 @@
 package handlers
 
 import (
-	"database/sql"
+	"errors"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/aashutosh148/Stridely/pacer-api/services"
 )
 
@@ -25,7 +27,7 @@ func (h *FitnessHandler) GetMetrics(c *fiber.Ctx) error {
 
 	ctl, atl, tsb, err := h.analysis.GetLatestFitnessMetrics(c.Context(), uid)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return c.JSON(fiber.Map{
 				"ctl":            0,
 				"atl":            0,
@@ -34,6 +36,7 @@ func (h *FitnessHandler) GetMetrics(c *fiber.Ctx) error {
 				"race_readiness": false,
 			})
 		}
+		slog.Error("failed to fetch fitness metrics", "error", err, "user_id", userID)
 		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch fitness metrics"})
 	}
 

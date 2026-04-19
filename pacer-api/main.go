@@ -157,7 +157,7 @@ func main() {
 	healthHandler := handlers.NewHealthHandler(postgres)
 	authHandler := handlers.NewAuthHandler(postgres, stravaClient, analysisService)
 	webhookHandler := handlers.NewWebhookHandler(postgres, redis, stravaClient, analysisService, eventHub)
-	activitiesHandler := handlers.NewActivitiesHandler(postgres)
+	activitiesHandler := handlers.NewActivitiesHandler(postgres, stravaClient, analysisService)
 	fitnessHandler := handlers.NewFitnessHandler(analysisService)
 	readinessHandler := handlers.NewReadinessHandler(postgres)
 	statsHandler := handlers.NewStatsHandler(postgres)
@@ -190,6 +190,7 @@ func main() {
 	protected.Get("/activities", activitiesHandler.List)
 	protected.Get("/activities/recent", activitiesHandler.Recent)
 	protected.Get("/activities/:id", activitiesHandler.Get)
+	protected.Post("/activities/sync", activitiesHandler.Sync)
 	protected.Get("/events/stream", eventsHandler.Stream)
 
 	// Fitness metrics routes

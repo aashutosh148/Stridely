@@ -3,50 +3,78 @@
 default:
 	@just --list
 
+# Start all services (postgres, redis, api)
 up:
 	docker compose up -d
 
+# Stop all services
 down:
 	docker compose down
 
+# Stop all services and remove volumes
 down-volumes:
 	docker compose down -v
 
+# Start only dependencies (postgres, redis)
 deps-up:
 	docker compose up -d postgres redis
 
+# Stop only dependencies
 deps-down:
 	docker compose stop postgres redis
 
+# View all logs
 logs:
 	docker compose logs -f
 
+# View API logs only
 logs-api:
 	docker compose logs -f api
 
+# View database logs
 logs-db:
 	docker compose logs -f postgres
 
+# View Redis logs
 logs-redis:
 	docker compose logs -f redis
 
+# Rebuild and restart API container
 rebuild:
 	docker compose up -d --build api
 
+# Run API locally (not in Docker)
 dev:
 	go run main.go
 
+# Run tests
 test:
 	go test ./...
 
+# Format code
 fmt:
 	go fmt ./...
 
+# Build binary locally
 build:
 	go build -o bin/pacer-api main.go
 
+# Check API health
 health:
 	curl -s http://localhost:3001/health
 
+# Connect to database
 db:
 	docker exec -it pacer-postgres psql -U pacer -d pacer
+
+# Restart all services
+restart:
+	docker compose restart
+
+# Restart only API
+restart-api:
+	docker compose restart api
+
+# View API logs with timestamps
+logs-api-tail:
+	docker compose logs -f --tail=100 api
